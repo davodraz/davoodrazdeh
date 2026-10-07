@@ -10,215 +10,215 @@ app.get("/", (req, res) => {
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>VLESS Panel</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #111827;
-      color: white;
-      margin: 0;
-      padding: 30px;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VLESS Panel</title>
 
-    .panel {
-      max-width: 600px;
-      margin: auto;
-      background: #1f2937;
-      padding: 25px;
-      border-radius: 15px;
-    }
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: #111827;
+  color: white;
+  margin: 0;
+  padding: 25px;
+}
 
-    h1 {
-      text-align: center;
-    }
+.panel {
+  max-width: 600px;
+  margin: auto;
+  background: #1f2937;
+  padding: 25px;
+  border-radius: 18px;
+}
 
-    label {
-      display: block;
-      margin-top: 15px;
-      margin-bottom: 6px;
-    }
+h1 {
+  text-align: center;
+  margin-bottom: 30px;
+}
 
-    input, select, button {
-      width: 100%;
-      box-sizing: border-box;
-      padding: 12px;
-      border-radius: 8px;
-      border: none;
-      margin-bottom: 10px;
-      font-size: 16px;
-    }
+label {
+  display: block;
+  margin: 15px 0 7px;
+}
 
-    button {
-      cursor: pointer;
-      background: #2563eb;
-      color: white;
-      font-weight: bold;
-    }
+input, select, button {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 13px;
+  border-radius: 9px;
+  border: none;
+  font-size: 16px;
+}
 
-    button:hover {
-      background: #1d4ed8;
-    }
+button {
+  margin-top: 20px;
+  background: #2563eb;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+}
 
-    textarea {
-      width: 100%;
-      box-sizing: border-box;
-      height: 130px;
-      border-radius: 8px;
-      padding: 10px;
-      margin-top: 10px;
-      direction: ltr;
-    }
+.uuid-box {
+  display: flex;
+  gap: 8px;
+}
 
-    .result {
-      margin-top: 20px;
-    }
-  </style>
+.uuid-box input {
+  flex: 1;
+}
+
+.uuid-box button {
+  width: 110px;
+  margin-top: 0;
+}
+
+.result {
+  margin-top: 25px;
+  display: none;
+}
+
+textarea {
+  width: 100%;
+  height: 130px;
+  box-sizing: border-box;
+  direction: ltr;
+  padding: 10px;
+  border-radius: 9px;
+  border: none;
+}
+
+.copy {
+  background: #059669;
+}
+
+#qrcode {
+  margin: 20px auto;
+  width: 200px;
+  background: white;
+  padding: 10px;
+}
+</style>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
 </head>
 
 <body>
 
 <div class="panel">
 
-  <h1>پنل ساخت VLESS</h1>
+<h1>پنل ساخت VLESS</h1>
 
-  <form method="POST" action="/generate">
+<label>Address / IP سرور</label>
+<input id="address" placeholder="example.com">
 
-    <label>Address / دامنه یا IP سرور</label>
-    <input
-      type="text"
-      name="address"
-      placeholder="example.com"
-      required
-    >
+<label>Port</label>
+<input id="port" type="number" value="443">
 
-    <label>Port</label>
-    <input
-      type="number"
-      name="port"
-      value="443"
-      required
-    >
+<label>UUID</label>
 
-    <label>UUID</label>
-    <input
-      type="text"
-      name="uuid"
-      placeholder="UUID را وارد کنید"
-      required
-    >
-
-    <label>Transport</label>
-    <select name="type">
-      <option value="tcp">TCP</option>
-      <option value="ws">WebSocket</option>
-    </select>
-
-    <label>TLS</label>
-    <select name="security">
-      <option value="tls">TLS</option>
-      <option value="none">None</option>
-    </select>
-
-    <button type="submit">
-      ساخت کانفیگ
-    </button>
-
-  </form>
-
+<div class="uuid-box">
+  <input id="uuid" placeholder="UUID">
+  <button type="button" onclick="generateUUID()">تولید UUID</button>
 </div>
 
-</body>
-</html>
-  `);
-});
+<label>Transport</label>
+<select id="type">
+  <option value="tcp">TCP</option>
+  <option value="ws">WebSocket</option>
+</select>
 
-app.post("/generate", (req, res) => {
-  const { address, port, uuid, type, security } = req.body;
+<label>TLS</label>
+<select id="security">
+  <option value="tls">TLS</option>
+  <option value="none">None</option>
+</select>
 
-  const config =
-    `vless://${uuid}@${address}:${port}?type=${type}&security=${security}#VLESS-Config`;
+<button onclick="generateConfig()">
+ساخت کانفیگ
+</button>
 
-  res.send(`
-<!DOCTYPE html>
-<html lang="fa" dir="rtl">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>VLESS Config</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #111827;
-      color: white;
-      padding: 30px;
-    }
+<div class="result" id="result">
 
-    .panel {
-      max-width: 700px;
-      margin: auto;
-      background: #1f2937;
-      padding: 25px;
-      border-radius: 15px;
-    }
+<h3>کانفیگ ساخته شد ✅</h3>
 
-    textarea {
-      width: 100%;
-      height: 160px;
-      box-sizing: border-box;
-      direction: ltr;
-      padding: 10px;
-      border-radius: 8px;
-    }
+<textarea id="config" readonly></textarea>
 
-    button {
-      width: 100%;
-      padding: 12px;
-      margin-top: 15px;
-      border: none;
-      border-radius: 8px;
-      background: #2563eb;
-      color: white;
-      font-size: 16px;
-      cursor: pointer;
-    }
+<button class="copy" onclick="copyConfig()">
+کپی کانفیگ
+</button>
 
-    a {
-      display: block;
-      text-align: center;
-      margin-top: 15px;
-      color: white;
-    }
-  </style>
-</head>
+<h3 style="text-align:center">
+QR Code
+</h3>
 
-<body>
+<div id="qrcode"></div>
 
-<div class="panel">
-
-  <h2>کانفیگ ساخته شد ✅</h2>
-
-  <textarea id="config" readonly>${config}</textarea>
-
-  <button onclick="copyConfig()">
-    کپی کانفیگ
-  </button>
-
-  <a href="/">
-    ساخت کانفیگ جدید
-  </a>
+</div>
 
 </div>
 
 <script>
-function copyConfig() {
-  const text = document.getElementById("config").value;
 
-  navigator.clipboard.writeText(text).then(() => {
-    alert("کانفیگ کپی شد ✅");
+function generateUUID() {
+  const uuid = crypto.randomUUID();
+  document.getElementById("uuid").value = uuid;
+}
+
+function generateConfig() {
+
+  const address = document.getElementById("address").value.trim();
+  const port = document.getElementById("port").value;
+  const uuid = document.getElementById("uuid").value.trim();
+  const type = document.getElementById("type").value;
+  const security = document.getElementById("security").value;
+
+  if (!address) {
+    alert("Address یا IP سرور را وارد کنید");
+    return;
+  }
+
+  if (!uuid) {
+    generateUUID();
+  }
+
+  const finalUUID = document.getElementById("uuid").value;
+
+  const config =
+    "vless://" +
+    finalUUID +
+    "@" +
+    address +
+    ":" +
+    port +
+    "?type=" +
+    type +
+    "&security=" +
+    security +
+    "#VLESS-Config";
+
+  document.getElementById("config").value = config;
+
+  document.getElementById("result").style.display = "block";
+
+  document.getElementById("qrcode").innerHTML = "";
+
+  new QRCode(document.getElementById("qrcode"), {
+    text: config,
+    width: 200,
+    height: 200
   });
 }
+
+function copyConfig() {
+
+  const config = document.getElementById("config").value;
+
+  navigator.clipboard.writeText(config);
+
+  alert("کانفیگ کپی شد ✅");
+}
+
 </script>
 
 </body>
@@ -227,5 +227,5 @@ function copyConfig() {
 });
 
 app.listen(PORT, "0.0.0.0", () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log("Server running on port " + PORT);
 });

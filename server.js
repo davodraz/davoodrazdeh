@@ -42,7 +42,7 @@ app.get("/", async (req, res) => {
   }
 
   const subscriptionUrl =
-    `${req.protocol}://${req.get("host")}/sub/${SUB_TOKEN}`;
+  `https://${req.get("host")}/sub/${SUB_TOKEN}`;
 
   res.send(`
 <!DOCTYPE html>
